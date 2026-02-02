@@ -12,6 +12,8 @@ import Login from './components/Login'
 import Signup from './components/Signup'
 import Profile from './components/Profile'
 import CurrentUserContext from './context/CurrentUserContext'
+import ProtectedRoute from './components/ProtectedRoute'
+import useLocalStorage from './hooks/useLocalStorage'
 
 type CurrentUser = {
   username: string
@@ -22,16 +24,17 @@ type CurrentUser = {
 }
 
 const App = () => {
-  const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem('joblyToken')
-  })
+  const [token, setToken] = useLocalStorage<string | null>('joblyToken', null)
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
+  const [isLoadingUser, setIsLoadingUser] = useState(true)
 
   useEffect(() => {
     const loadUser = async () => {
+      setIsLoadingUser(true)
       if (!token) {
         setCurrentUser(null)
         JoblyApi.token = null
+        setIsLoadingUser(false)
         return
       }
 
@@ -40,9 +43,10 @@ const App = () => {
         const decoded: { username: string } = jwtDecode(token)
         const user = await JoblyApi.getCurrentUser(decoded.username)
         setCurrentUser(user)
-        localStorage.setItem('joblyToken', token)
       } catch (err) {
         setCurrentUser(null)
+      } finally {
+        setIsLoadingUser(false)
       }
     }
 
@@ -77,20 +81,40 @@ const App = () => {
 
   const logout = () => {
     setToken(null)
-    localStorage.removeItem('joblyToken')
   }
 
   return (
     <BrowserRouter>
-      <CurrentUserContext.Provider value={{ currentUser }}>
+      <CurrentUserContext.Provider value={{ currentUser, isLoadingUser }}>
         <div className="app">
           <NavBar onLogout={logout} />
           <main className="app-content">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/companies" element={<CompaniesList />} />
-              <Route path="/companies/:handle" element={<CompanyDetail />} />
-              <Route path="/jobs" element={<JobsList />} />
+              <Route
+                path="/companies"
+                element={
+                  <ProtectedRoute>
+                    <CompaniesList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/companies/:handle"
+                element={
+                  <ProtectedRoute>
+                    <CompanyDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/jobs"
+                element={
+                  <ProtectedRoute>
+                    <JobsList />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/login" element={<Login login={login} />} />
               <Route path="/signup" element={<Signup signup={signup} />} />
               <Route path="/profile" element={<Profile />} />
