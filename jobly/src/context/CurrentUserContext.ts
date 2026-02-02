@@ -10,10 +10,12 @@ type CurrentUser = {
 
 type CurrentUserContextValue = {
   currentUser: CurrentUser | null
+  isLoadingUser: boolean
 }
 
 const CurrentUserContext = createContext<CurrentUserContextValue>({
   currentUser: null,
+  isLoadingUser: true,
 })
 
 export default CurrentUserContext
