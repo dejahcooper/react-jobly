@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:3001";
+const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3001";
 
 /** API Class.
  *
@@ -43,6 +43,15 @@ class JoblyApi {
     return res.company;
   }
 
+  /** Get list of companies, optionally filtered by name. */
+
+  static async getCompanies(nameLike) {
+    const data = {};
+    if (nameLike) data.nameLike = nameLike;
+    let res = await this.request("companies", data);
+    return res.companies;
+  }
+
   // obviously, you'll add a lot here ...
 }
 
@@ -50,3 +59,5 @@ class JoblyApi {
 JoblyApi.token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZ" +
     "SI6InRlc3R1c2VyIiwiaXNBZG1pbiI6ZmFsc2UsImlhdCI6MTU5ODE1OTI1OX0." +
     "FtrMwBQwe6Ue-glIFgz_Nf8XxRT2YecFCiSpYL0fCXc";
+
+export default JoblyApi;
