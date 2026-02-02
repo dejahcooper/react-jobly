@@ -83,6 +83,28 @@ const App = () => {
     setToken(null)
   }
 
+  const updateProfile = async (data: {
+    firstName?: string
+    lastName?: string
+    email?: string
+    password?: string
+  }) => {
+    if (!currentUser) {
+      return { success: false, errors: ['No current user.'] }
+    }
+
+    try {
+      const updatedUser = await JoblyApi.updateCurrentUser(
+        currentUser.username,
+        data,
+      )
+      setCurrentUser(updatedUser)
+      return { success: true }
+    } catch (err) {
+      return { success: false, errors: err as string[] }
+    }
+  }
+
   return (
     <BrowserRouter>
       <CurrentUserContext.Provider value={{ currentUser, isLoadingUser }}>
@@ -117,7 +139,14 @@ const App = () => {
               />
               <Route path="/login" element={<Login login={login} />} />
               <Route path="/signup" element={<Signup signup={signup} />} />
-              <Route path="/profile" element={<Profile />} />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile updateProfile={updateProfile} />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="*"
                 element={
