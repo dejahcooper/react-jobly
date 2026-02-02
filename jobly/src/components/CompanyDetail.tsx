@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import JoblyApi from '../api/api'
+import JobCard from './JobCard'
 
 type Job = {
   id: number
@@ -81,13 +82,7 @@ const CompanyDetail = () => {
       <h2>Open Roles</h2>
       <div className="company-jobs">
         {company.jobs && company.jobs.length > 0 ? (
-          company.jobs.map((job) => (
-            <div key={job.id} className="job-card">
-              <h3>{job.title}</h3>
-              <p>Salary: {job.salary ?? 'Not listed'}</p>
-              <p>Equity: {job.equity || 'None'}</p>
-            </div>
-          ))
+          company.jobs.map((job) => <JobCard key={job.id} job={job} />)
         ) : (
           <p>No open roles listed.</p>
         )}
