@@ -1,3 +1,6 @@
+import { useContext, useState } from 'react'
+import CurrentUserContext from '../context/CurrentUserContext'
+
 type JobCardProps = {
   job: {
     id: number
@@ -9,6 +12,19 @@ type JobCardProps = {
 }
 
 const JobCard = ({ job }: JobCardProps) => {
+  const { currentUser, applyToJob } = useContext(CurrentUserContext)
+  const [isApplying, setIsApplying] = useState(false)
+
+  const applied =
+    currentUser?.jobs?.some((appliedJob) => appliedJob.id === job.id) ?? false
+
+  const handleApply = async () => {
+    if (applied || isApplying) return
+    setIsApplying(true)
+    await applyToJob(job.id)
+    setIsApplying(false)
+  }
+
   return (
     <article className="job-card">
       <div>
@@ -17,6 +33,9 @@ const JobCard = ({ job }: JobCardProps) => {
         <p>Salary: {job.salary ?? 'Not listed'}</p>
         <p>Equity: {job.equity || 'None'}</p>
       </div>
+      <button type="button" onClick={handleApply} disabled={applied || isApplying}>
+        {applied ? 'Applied' : isApplying ? 'Applying...' : 'Apply'}
+      </button>
     </article>
   )
 }
