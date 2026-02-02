@@ -21,6 +21,7 @@ type CurrentUser = {
   lastName?: string
   email?: string
   isAdmin?: boolean
+  jobs?: { id: number; state?: string }[]
 }
 
 const App = () => {
@@ -105,9 +106,46 @@ const App = () => {
     }
   }
 
+  const applyToJob = async (jobId: number) => {
+    if (!currentUser) return
+
+    try {
+      await JoblyApi.applyToJob(currentUser.username, jobId)
+      setCurrentUser((user) => {
+        if (!user) return user
+        const existing = user.jobs || []
+        if (existing.some((job) => job.id === jobId)) {
+          return user
+        }
+        return {
+          ...user,
+          jobs: [...existing, { id: jobId, state: 'applied' }],
+        }
+      })
+    } catch (err) {
+      const errors = Array.isArray(err) ? err : [String(err)]
+      const isDuplicate = errors.some((message) =>
+        message.includes('duplicate key value'),
+      )
+      if (isDuplicate) {
+        setCurrentUser((user) => {
+          if (!user) return user
+          const existing = user.jobs || []
+          if (existing.some((job) => job.id === jobId)) {
+            return user
+          }
+          return {
+            ...user,
+            jobs: [...existing, { id: jobId, state: 'applied' }],
+          }
+        })
+      }
+    }
+  }
+
   return (
     <BrowserRouter>
-      <CurrentUserContext.Provider value={{ currentUser, isLoadingUser }}>
+      <CurrentUserContext.Provider value={{ currentUser, isLoadingUser, applyToJob }}>
         <div className="app">
           <NavBar onLogout={logout} />
           <main className="app-content">
